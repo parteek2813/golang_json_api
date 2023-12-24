@@ -1,5 +1,7 @@
 github.com/durmaze/gobank v0.0.0-20190411075543-aa169ba28e80 h1:XjtfMCRIO1/BRzD8l2TwELPQ/an4DpInKIIZs+bal2I=
 github.com/durmaze/gobank v0.0.0-20190411075543-aa169ba28e80/go.mod h1:Aqm7vGojpGmYTHn1NFnMWaF8t5LOR1PcewIJZPMw7dc=
+github.com/gorilla/mux v1.8.1 h1:TuBL49tXwgrFYWhqrNgrUNEY92u81SPhu7sTdzQEiWY=
+github.com/gorilla/mux v1.8.1/go.mod h1:AKf9I4AEqPTmMytcMc0KkNouC66V3BtZ4qD5fmWSiMQ=
 github.com/parnurzeal/gorequest v0.2.16 h1:T/5x+/4BT+nj+3eSknXmCTnEVGSzFzPGdpqmUVVZXHQ=
 github.com/parnurzeal/gorequest v0.2.16/go.mod h1:3Kh2QUMJoqw3icWAecsyzkpY7UzRfDhbRdTjtNwNiUE=
 github.com/pkg/errors v0.9.1 h1:FEBLx1zS214owpjy7qsBeixbURkuhQAwrK5UwLGTwt4=
