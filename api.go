@@ -35,6 +35,8 @@ func (s *APIServer) Run(){
 
 	http.ListenAndServe(s.listenAddr, router)
 
+	
+
 }
 
 func (s *APIServer) handleAccount(w http.ResponseWriter, r *http.Request )error {
@@ -45,7 +47,7 @@ func (s *APIServer) handleAccount(w http.ResponseWriter, r *http.Request )error 
 
 
 	if(r.Method == "POST"){
-		return s.handleGetAccount(w, r)
+		return s.handleCreateAccount(w, r)
 	}
 
 	if (r.Method == "DELETE"){
@@ -61,14 +63,26 @@ func (s *APIServer) handleGetAccount(w http.ResponseWriter, r *http.Request )err
 	id := mux.Vars(r)["id"]
 
 	fmt.Println(id)
-	
-	// account := NewAccount("Parteek", "Kumar")
-	
+		
 	return WriteJSON(w, http.StatusOK, &Account{})
 }
 
 func (s *APIServer) handleCreateAccount(w http.ResponseWriter, r *http.Request )error {
-	return nil
+
+	createAccountReq  := new(CreateAccountRequest)
+	if err := json.NewDecoder(r.Body).Decode(createAccountReq); err != nil {
+		return err
+	}
+
+	account := NewAccount(createAccountReq.FirstName, createAccountReq.LastName)
+
+	// create account in store
+	if err := s.store.CreateAccount(account); err != nil {
+		return err
+	}
+
+
+	return WriteJSON(w, http.StatusOK, account)
 }
 
 func (s *APIServer) handleDeleteAccount(w http.ResponseWriter, r *http.Request )error {
