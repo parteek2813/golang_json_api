@@ -4,6 +4,7 @@ go 1.21.3
 
 require (
 	github.com/durmaze/gobank v0.0.0-20190411075543-aa169ba28e80 // indirect
+	github.com/golang-jwt/jwt/v5 v5.2.0 // indirect
 	github.com/gorilla/mux v1.8.1 // indirect
 	github.com/lib/pq v1.10.9 // indirect
 	github.com/parnurzeal/gorequest v0.2.16 // indirect

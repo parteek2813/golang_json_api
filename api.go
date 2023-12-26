@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"strconv"
 
+	jwt "github.com/golang-jwt/jwt/v5"
 	"github.com/gorilla/mux"
 )
 
@@ -30,7 +31,8 @@ func (s *APIServer) Run(){
 
 	router.HandleFunc("/account", makeHTTPHandleFunc(s.handleAccount))
 	
-	router.HandleFunc("/account/{id}", makeHTTPHandleFunc(s.handleGetAccountByID))
+	router.HandleFunc("/account/{id}", withJWTAuth(makeHTTPHandleFunc(s.handleGetAccountByID)))
+	router.HandleFunc("/transfer", makeHTTPHandleFunc(s.handleTransfer))
 	
 	log.Println("JSON API server running on port: ", s.listenAddr)
 
@@ -117,6 +119,15 @@ func (s *APIServer) handleCreateAccount(w http.ResponseWriter, r *http.Request )
 	if err := s.store.CreateAccount(account); err != nil {
 		return err
 	}
+
+	tokenString, err := createJWT(account)
+	if err != nil {
+		return err
+	}
+
+	fmt.Println("JWT token: ", tokenString)
+
+
 	return WriteJSON(w, http.StatusOK, account)
 }
 
@@ -134,16 +145,78 @@ func (s *APIServer) handleDeleteAccount(w http.ResponseWriter, r *http.Request )
 	return WriteJSON(w, http.StatusOK, map[string]int{"deleted": id})
 }
 
-func (s *APIServer) handleTransferAccount(w http.ResponseWriter, r *http.Request )error {
-	return nil
-}
+func (s *APIServer) handleTransfer(w http.ResponseWriter, r *http.Request )error {
+	transferReq := new(TransferRequest)
+	if err := json.NewDecoder(r.Body).Decode(transferReq); err != nil {
+		return err
+	}
 
+	defer r.Body.Close()
+
+
+	
+	return WriteJSON(w, http.StatusOK, transferReq)
+}
 
 // HELPER FUNCTIONS
 func WriteJSON(w http.ResponseWriter, status int , v any) error{
 	w.Header().Add("Content-Type", "application/json")
 	w.WriteHeader(status)
+	
+	
 	return json.NewEncoder(w).Encode(v)
+}
+
+// eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhY2NvdW50TnVtYmVyIjo0OTgzOCwiZXhwaXJlc0F0IjoxNTAwMH0.mMB0bPOu84h9gDN9JUG4sa75xSC_-OkbII0EVOLlhHA
+
+func createJWT(account *Account)(string, error){
+	claims := &jwt.MapClaims{
+		"expiresAt": 15000,
+		"accountNumber": account.Number,
+	}
+
+	secret := jwtSecret
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	
+	
+	return token.SignedString([]byte(secret))
+}
+
+func withJWTAuth(handlerFunc http.HandlerFunc) http.HandlerFunc{
+
+	
+	return func(w http.ResponseWriter, r *http.Request){
+		fmt.Println("Calling JWT auth middleware")
+
+		tokenString := r.Header.Get("x-jwt-token")
+		// Validate here
+		_, err := validateJWT(tokenString)
+
+
+		if err != nil {
+			WriteJSON(w, http.StatusForbidden, ApiError{Error: "invalid token"})
+			return 
+		}
+		handlerFunc(w, r)
+	}
+}
+
+const jwtSecret = "hunter9999"
+
+func validateJWT(tokenString string)(*jwt.Token, error){
+	
+	secret := jwtSecret
+	return jwt.Parse(tokenString, func(token *jwt.Token)(interface{}, error){
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
+		}
+
+
+
+		// HmacSampleSecret is containing a []byte secret e.g []byte("my_secret_key")
+
+		return []byte(secret), nil
+	})
 }
 
 type apiFunc func(http.ResponseWriter, *http.Request) error 
