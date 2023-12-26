@@ -43,6 +43,8 @@ func (s *APIServer) Run(){
 
 }
 
+// 636918
+
 func (s *APIServer) handleLogin(w http.ResponseWriter, r *http.Request )error {
 
 
@@ -55,6 +57,14 @@ func (s *APIServer) handleLogin(w http.ResponseWriter, r *http.Request )error {
 	}
 
 
+	acc, err := s.store.GetAccountByNumber(int(req.Number))
+
+	if err != nil {
+		return err
+	}
+
+
+	fmt.Printf("%+v\n", acc)
 
 
 
